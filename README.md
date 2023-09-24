@@ -71,34 +71,3 @@ python3 ./main.py \
 ## Note
 
 * With count=1000000 and length=100 program will take about 2 minutes and 30 seconds.
-
-
-
-
-
-
-
-
-
-python3 /Users/philr/Desktop/hw_genes/main.py \
---reference=/Users/philr/Downloads/hg19.fa \
---vcf=/Users/philr/Downloads/M46.snps.vcf \
---output=/Users/philr/Downloads \
---length=100 \
---count=1000000 \
---allele_frequency=0.5
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
