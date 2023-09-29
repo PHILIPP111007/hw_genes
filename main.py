@@ -71,4 +71,4 @@ if __name__ == '__main__':
 
 	t_2 = time.time()
 	z = (t_2 - t_1) / 60
-	print(f'Time (seconds): {z}')
+	print(f'Time (min): {z}')

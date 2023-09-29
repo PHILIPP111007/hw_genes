@@ -20,9 +20,12 @@ def _prepare_vcf(vcf_path: str) -> str:
 	with open(vcf_path, 'r', encoding='UTF-8') as old_file:
 		data = old_file.readlines()
 
+	i = 0
 	for _ in range(len(data)):
-		if data[0].startswith('##'):
+		if data[i].startswith('##'):
 			data.pop(0)
+		else:
+			i += 1
 
 	with open(file_new_path, 'w', encoding='UTF-8') as new_file:
 		new_file.writelines(data)
@@ -57,11 +60,11 @@ def _get_fasta_iter(fasta_path: str) -> tuple[str, str]:
 			header = header.__next__().strip()
 			if header.startswith('>chr'):
 				header = header[4:]
-			else:
+			elif header.startswith('>'):
 				header = header[1:]
 
 			# join all sequence lines to one.
-			seq = ''.join(s.strip().upper() for s in faiter.__next__())
+			seq = ''.join(s.strip() for s in faiter.__next__())
 			yield header, seq
 
 
@@ -78,17 +81,9 @@ def _create_fasta_file(line, chrs):
 def create_work_folders() -> None:
 	"""Creates work folders."""
 
-	if not os.path.exists(WORK_DIR):
-		os.mkdir(WORK_DIR)
-
-	if not os.path.exists(reference_dir):
-		os.mkdir(reference_dir)
-
-	if not os.path.exists(vcf_dir):
-		os.mkdir(vcf_dir)
-
-	if not os.path.exists(consensuses_dir):
-		os.mkdir(consensuses_dir)
+	for path in (WORK_DIR, reference_dir, vcf_dir, consensuses_dir):
+		if not os.path.exists(path):
+			os.mkdir(path)
 
 
 def vcf_processing(vcf_path: str, AF: float) -> None:
@@ -114,7 +109,6 @@ def vcf_processing(vcf_path: str, AF: float) -> None:
 
 			pos = record['POS']
 			chrs.add(chr_num)
-			alt = record['ALT'].split(',')
 
 			# Include record based on AF.
 			include_record = True
@@ -131,16 +125,23 @@ def vcf_processing(vcf_path: str, AF: float) -> None:
 			if not include_record:
 				continue
 
-			result = {
-				samples[i]: alt[i] if len(alt) > 1 else alt[0]
-				for i in range(len(samples))
-			} # {'SAMPLE1': 'G', 'SAMPLE2': 'A'}
+			result = {} # {'SAMPLE1': 'GT', 'SAMPLE2': 'AT'}
+			alleles: list[str] = record['REF'].split(',') + record['ALT'].split(',')
+			delimeter = '/' # SAMPLE1 - 0/1
+			for sample in samples:
+				allele_indexes = record[sample].split(':')[0]
+				if '|' in allele_indexes:
+					delimeter = '|'
 
-			DB_vcf.setdefault(chr_num, {})
-			DB_vcf[chr_num].setdefault(pos, {
-				'ref': record['REF'],
-				'alt': {}
-			})['alt'] = result
+				allele_indexes = allele_indexes.split(delimeter)
+
+				if ''.join(allele_indexes).isdigit():
+					allele_indexes = list(map(int, allele_indexes))
+					result[sample] = ''.join(list(alleles[i] for i in allele_indexes))
+
+			if result:
+				DB_vcf.setdefault(chr_num, {})
+				DB_vcf[chr_num].setdefault(pos, result)
 
 	chrs: list[str] = list(chrs)
 

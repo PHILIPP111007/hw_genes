@@ -58,7 +58,7 @@ def _create_fasta_for_sample(
 		output_path: str,
 		consensuses_per_chr
 	) -> None:
-	
+
 	result_fasta_file = f'{output_path}/{sample}.fasta'
 	with open(result_fasta_file, 'w', encoding='UTF-8') as f:
 
@@ -75,7 +75,7 @@ def _process_chr_num(
 		consensuses_length: int,
 		sample: str
 	) -> None:
-	
+
 	print(f'chr{chr_num}')
 
 	pos_min = min(consensus_indexes_per_chr[chr_num])
@@ -97,7 +97,7 @@ def _process_chr_num(
 		if pos not in open_for_change:
 			continue
 
-		dna = dna[:pos - pos_min] + [vcf_data[str(pos)]["alt"][sample]] + \
+		dna = dna[:pos - pos_min] + [vcf_data[str(pos)][sample]] + \
 			dna[pos - pos_min + 1:]
 
 	dna = ''.join(dna)
