@@ -126,7 +126,7 @@ def vcf_processing(vcf_path: str, AF: float) -> None:
 				continue
 
 			result = {} # {'SAMPLE1': 'GT', 'SAMPLE2': 'AT'}
-			alleles: list[str] = record['REF'].split(',') + record['ALT'].split(',')
+			alleles: list[str] = list(record['REF']) + record['ALT'].split(',')
 			delimeter = '/' # SAMPLE1 - 0/1
 			for sample in samples:
 				allele_indexes = record[sample].split(':')[0]
